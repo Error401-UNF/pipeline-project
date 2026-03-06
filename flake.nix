@@ -21,13 +21,13 @@
             pip
             psycopg
           ]))
+
+          python3Packages.python-lsp-server
+          stdenv.cc.cc.lib
+          zlib
         ];
 
-        python3Packages.python-lsp-server
-          
-        # Useful C libraries often needed by Python wheels
-        stdenv.cc.cc.lib
-        zlib
+        
 
         shellHook = ''
           # Fixes issues with libraries not being found by pip-installed packages
