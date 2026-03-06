@@ -3,7 +3,6 @@ import psycopg
 from dataclasses import dataclass,asdict,astuple
 import datetime
 import random
-
 @dataclass
 class dirty_Employee:
     Employee_Id: int | None
@@ -134,17 +133,17 @@ def fix_date(date:str) -> str:
     return fixed
 
 def fix_datatype(row: tuple) -> dirty_Employee:
-    Employee_Id = int(row[0]) if row[0].isnumeric() and row[0] != "" else None
+    Employee_Id = abs(int(row[0])) if row[0].isnumeric() and row[0] != "" else None
     Name = row[1] if row[1] != "" else None
-    Age = int(row[2]) if row[2].isnumeric() and row[2] != "" else None
+    Age = abs(int(row[2])) if row[2].isnumeric() and row[2] != "" else None
     Department = row[3] if row[3] != "" else None
     Date_of_Joining =  datetime.date.fromisoformat(fix_date(row[4])) if row[4] != "" else None
-    Years_of_Experience = int(row[5]) if row[5].isnumeric() and row[5] != "" else None
+    Years_of_Experience = abs(int(row[5])) if row[5].isnumeric() and row[5] != "" else None
     Country = row[6] if row[6] != "" else None
-    Salary = float(row[7]) if row[7].isnumeric() and row[7] != "" else None
-    Performance_Rating = int(row[8]) if row[8].isnumeric() and row[8] != "" else None
-    Total_Sales = float(row[9]) if row[9].isnumeric() and row[9] != "" else None
-    Support_Rating =  int(row[10]) if row[10].isnumeric() and row[10] != "" else None
+    Salary = abs(float(row[7])) if row[7].isnumeric() and row[7] != "" else None
+    Performance_Rating = abs(int(row[8])) if row[8].isnumeric() and row[8] != "" else None
+    Total_Sales = abs(float(row[9])) if row[9].isnumeric() and row[9] != "" else None
+    Support_Rating =  abs(int(row[10])) if row[10].isnumeric() and row[10] != "" else None
     return dirty_Employee(Employee_Id,Name,Age,Department,Date_of_Joining,Years_of_Experience,Country,Salary,Performance_Rating,Total_Sales,Support_Rating)
 
 def fix_performance(text: str) -> int:
