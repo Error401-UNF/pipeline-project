@@ -6,5 +6,5 @@ All parts put together
 """
 
 
-#Injestion.run_injestion() # commented out if data is already in the database
+Injestion.run_injestion() # commented out if data is already in the database
 Processing.run_processing()
