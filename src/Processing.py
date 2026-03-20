@@ -34,7 +34,8 @@ def run_processing():
                     ROUND(AVG(e.salary), 2) AS average_salary
                 FROM staging.employees e
                 JOIN staging.departments d ON e.dept_id = d.dept_id
-                GROUP BY d.dept_name;
+                GROUP BY d.dept_name
+                ORDER BY average_salary DESC;
                 """)
 
                 # average salary by years of experience
