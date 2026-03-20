@@ -2,3 +2,4 @@
 .venv
 .vscode/
 secrets.txt
+__pycache__

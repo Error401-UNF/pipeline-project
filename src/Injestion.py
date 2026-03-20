@@ -3,6 +3,11 @@ import psycopg
 from dataclasses import dataclass,asdict,astuple
 import datetime
 import random
+
+"""
+to do: refactor so incorrect lines are put into their own dictinaries
+"""
+
 @dataclass
 class dirty_Employee:
     Employee_Id: int | None
@@ -197,7 +202,7 @@ def fix_missing_data(emp:dirty_Employee, raw_row: tuple) -> Employee:
     return Employee(Employee_Id,Name,Age,Department,Date_of_Joining,Years_of_Experience,Country,Salary,Performance_Rating,Total_Sales,Support_Rating)
 
 def load_data(conn:psycopg.connection.Connection):
-    csv_file = open("data/employee_data.csv")
+    csv_file = open("data/employee_data_clean.csv")
     reader = csv.reader(csv_file)
     next(reader) # skip first line
 
@@ -237,10 +242,14 @@ def clean_data(conn:psycopg.connection.Connection):
             # step 2, Handle missing values
             clean_emp = fix_missing_data(raw_emp, raw_row)
 
+            # assuming clean data we just do this now
+            known_ids[clean_emp.Employee_Id] = clean_emp
+
             # step 3, format data
-            formatted_emp = fix_format(clean_emp)
+            #formatted_emp = fix_format(clean_emp)
 
             # step 4, detect and handel duplicates
+            """
             if formatted_emp.Employee_Id not in known_ids:
                 known_ids[formatted_emp.Employee_Id] = formatted_emp
             else:
@@ -254,6 +263,7 @@ def clean_data(conn:psycopg.connection.Connection):
                     #print("duplicate id")
                     formatted_emp.Employee_Id = get_new_id(known_ids)
                     known_ids[formatted_emp.Employee_Id] = formatted_emp
+            """
                 
             #print(f"Result: {clean_emp}")
     return known_ids
@@ -304,6 +314,7 @@ def normilize_data(clean_data: dict[int,Employee],conn:psycopg.connection.Connec
         for emp in clean_data.values():
             # get dep id
             if emp.Department not in departments: # also builds dep
+                print("dep",len(departments),"id",emp.Department)
                 departments[emp.Department] = len(departments)
                 cur.execute(
                     "INSERT INTO staging.departments (dept_id, dept_name) VALUES (%s,%s)",
@@ -332,28 +343,29 @@ def normilize_data(clean_data: dict[int,Employee],conn:psycopg.connection.Connec
                     (emp.Employee_Id,emp.Total_Sales)
                 )
 
-try:
-    post_pass = open("secrets.txt").readline()
-    with psycopg.connect(
-        conninfo=f"dbname=Pipeline user=postgres password={post_pass} host=localhost port=5432"
-    ) as conn:
-        print("Connected")
 
-        # load data
-        load_data(conn)
-        print("data Loaded")
+def run_injestion():
+    try:
+        post_pass = open("secrets.txt").readline()
+        with psycopg.connect(
+            conninfo=f"dbname=Pipeline user=postgres password={post_pass} host=localhost port=5432"
+        ) as conn:
+            print("Connected")
 
-        # now clean that data
-        clean = clean_data(conn)
-        print("data Cleaned")
+            # load data
+            load_data(conn)
+            print("data Loaded")
 
-        # now nomilize the data
-        normilize_data(clean,conn)
-        print("data Normilized")
+            # now clean that data
+            clean = clean_data(conn)
+            print("data Cleaned")
+
+            # now nomilize the data
+            normilize_data(clean,conn)
+            print("data Normilized")
 
 
-        conn.commit()
-        conn.close()
-
-except Exception as e:
-    print(f"An error occurred: {e}")
+            conn.commit()
+            conn.close()
+    except Exception as e:
+        print(f"An error occurred: {e}")
