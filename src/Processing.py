@@ -26,7 +26,7 @@ def run_processing():
             conn.commit()
 
             with conn.cursor() as cur:
-                # average salary by years of experience
+                # average salary by department
                 cur.execute("""
                 CREATE TABLE gold.salary_to_department_analysis AS
                 SELECT 
