@@ -1,0 +1,55 @@
+version: 2
+
+models:
+  - name: salary_to_department_analysis
+    description: "Average salary per department."
+    columns:
+      - name: dept_name
+        tests:
+          - not_null
+      - name: average_salary
+        description: "Mean salary rounded to 2 decimal places."
+
+  - name: salary_to_tenure_analysis
+    description: "Binned analysis of salary based on 3-year experience intervals."
+    columns:
+      - name: tenure_range
+        description: "The 3-year bracket (e.g., 0-2, 3-5)."
+      - name: average_salary
+        description: "Average salary within this experience bracket."
+
+  - name: performance_by_salary_analysis
+    description: "Breakdown of average salary across different performance ratings."
+    columns:
+      - name: performance_rating
+        description: "Numeric rating of employee performance."
+        tests:
+          - not_null
+      - name: average_salary
+
+  - name: salary_to_country_analysis
+    description: "Geospatial salary distribution analysis."
+    columns:
+      - name: country
+        tests:
+          - not_null
+      - name: average_salary
+
+  - name: early_talent_indicator
+    description: "List of high-performing employees with 3 or fewer years of experience."
+    columns:
+      - name: name
+        tests:
+          - not_null
+      - name: performance_rating
+        tests:
+          - accepted_values:
+              values: [4, 5]
+      - name: years_of_experience
+
+  - name: turnover_rate
+    description: "Calculates the average joining date per department to identify hiring cohorts."
+    columns:
+      - name: dept_name
+        tests:
+          - not_null

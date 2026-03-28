@@ -2,40 +2,42 @@
   description = "A simple Nix Flake for a VS Code Python environment";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
 
   outputs = { self, nixpkgs, ... }:
     let
-      system = "x86_64-linux"; # Change to "aarch64-darwin" for Apple Silicon
+      system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
+      dbt-with-postgres = pkgs.dbt.withAdapters (ps: [ ps.dbt-postgres ]);
     in
     {
       devShells.${system}.default = pkgs.mkShell {
         name = "python-dev-env";
 
-        # Packages available in the shell
-        nativeBuildInputs = with pkgs; [
-          # Python and core library
-          (python3.withPackages (ps: with ps; [
+        nativeBuildInputs = [
+          (pkgs.python3.withPackages (ps: with ps; [
             pip
             psycopg
+            python-lsp-server
+            setuptools
           ]))
 
-          python3Packages.python-lsp-server
-          stdenv.cc.cc.lib
-          zlib
+          dbt-with-postgres
+          pkgs.postgresql
+          pkgs.openssl
+          pkgs.stdenv.cc.cc.lib
+          pkgs.zlib
         ];
 
-        
-
         shellHook = ''
-          # Fixes issues with libraries not being found by pip-installed packages
-          export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath [ pkgs.stdenv.cc.cc.lib ]}:''${LD_LIBRARY_PATH}"
+          export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath [ pkgs.stdenv.cc.cc.lib pkgs.postgresql ]}:''${LD_LIBRARY_PATH}"
           
           echo "-------------------------------------------------------"
-          echo "Python Dev Environment Active"
-          echo "Python version: $(python --version)"
+          echo "Pipeline Project Environment Active"
+          echo "Python path: $(which python)"
+          echo "dbt: $(dbt --version | head -n 1)"
+          python -c "import psycopg; print('psycopg: found')" || echo "psycopg: MISSING"
           echo "-------------------------------------------------------"
         '';
       };

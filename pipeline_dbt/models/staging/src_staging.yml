@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: staging
+    database: Pipeline  # Or your specific database name
+    schema: staging
+    tables:
+      - name: employees
+      - name: departments
