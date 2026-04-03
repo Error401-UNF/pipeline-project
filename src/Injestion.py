@@ -201,6 +201,13 @@ def fix_missing_data(emp:dirty_Employee, raw_row: tuple) -> Employee:
 
     return Employee(Employee_Id,Name,Age,Department,Date_of_Joining,Years_of_Experience,Country,Salary,Performance_Rating,Total_Sales,Support_Rating)
 
+def detect_unclean_row(row: tuple) -> bool:
+    if None in row:
+        return True # incomplete, unclean
+    
+    
+    return False
+
 def load_data(conn:psycopg.connection.Connection):
     csv_file = open("data/employee_data_clean.csv")
     reader = csv.reader(csv_file)
@@ -210,8 +217,28 @@ def load_data(conn:psycopg.connection.Connection):
     # *************************************** KNOWN ISSUE ***************************************
     # if table already has data literally everything will be duplicated. 
     with conn.cursor() as cur:
+        # drop all relevent tables
+        cur.execute("""
+            DROP TABLE IF EXISTS sources.employees;
+            DROP TABLE IF EXISTS staging.invalid_data;
+        """)
         cur.execute("""
             CREATE TABLE IF NOT EXISTS sources.employees (
+                Employee_Id text,
+                Name text,
+                Age text,
+                Department text,
+                Date_of_Joining text,
+                Years_of_Experience text,
+                Country text,
+                Salary text,
+                Performance_Rating text,
+                Total_Sales text,
+                Support_Rating text                      
+                    )
+            """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS staging.invalid_data (
                 Employee_Id text,
                 Name text,
                 Age text,

@@ -9,37 +9,40 @@
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
-      dbt-with-postgres = pkgs.dbt.withAdapters (ps: [ ps.dbt-postgres ]);
+
+      pythonEnv = pkgs.python3.withPackages (ps: with ps; [
+        pip
+        setuptools
+        psycopg
+      ]);
     in
     {
       devShells.${system}.default = pkgs.mkShell {
-        name = "python-dev-env";
+        name = "pipeline-env";
 
-        nativeBuildInputs = [
-          (pkgs.python3.withPackages (ps: with ps; [
-            pip
-            psycopg
-            python-lsp-server
-            setuptools
-          ]))
-
-          dbt-with-postgres
+        buildInputs = [
+          pythonEnv
           pkgs.postgresql
           pkgs.openssl
-          pkgs.stdenv.cc.cc.lib
           pkgs.zlib
+          pkgs.stdenv.cc.cc.lib
+          # dbt remains separate as it has its own adapter logic
+          (pkgs.dbt.withAdapters (ps: [ ps.dbt-postgres ]))
         ];
 
         shellHook = ''
           export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath [ pkgs.stdenv.cc.cc.lib pkgs.postgresql ]}:''${LD_LIBRARY_PATH}"
           
+          # Force Airflow to live in your project folder
+          export AIRFLOW_HOME="$PWD/.airflow"
+          mkdir -p "$AIRFLOW_HOME"
+
           echo "-------------------------------------------------------"
-          echo "Pipeline Project Environment Active"
-          echo "Python path: $(which python)"
-          echo "dbt: $(dbt --version | head -n 1)"
-          python -c "import psycopg; print('psycopg: found')" || echo "psycopg: MISSING"
+          echo "Nix-Native Airflow Environment Active"
+          echo "Airflow Version: $(airflow version 2>/dev/null || echo 'Not Init Yet')"
+          echo "AIRFLOW_HOME: $AIRFLOW_HOME"
           echo "-------------------------------------------------------"
         '';
-      };
+        };
     };
 }

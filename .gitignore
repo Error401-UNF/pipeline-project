@@ -3,3 +3,6 @@
 .vscode/
 secrets.txt
 __pycache__
+.airflow/
+logs/
+target/
