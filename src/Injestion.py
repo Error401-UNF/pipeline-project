@@ -201,11 +201,31 @@ def fix_missing_data(emp:dirty_Employee, raw_row: tuple) -> Employee:
 
     return Employee(Employee_Id,Name,Age,Department,Date_of_Joining,Years_of_Experience,Country,Salary,Performance_Rating,Total_Sales,Support_Rating)
 
-def detect_unclean_row(row: tuple) -> bool:
-    if None in row:
+def detect_unclean_row(row: tuple|list) -> bool:
+    if None in row or "" in row:
         return True # incomplete, unclean
-    
-    
+    if int(row[2]) <= 0:
+        return True
+    try:
+        datetime.date.fromisoformat(row[4])
+    except:
+        # invalid format
+        return True
+    if int(row[5]) <= 0:
+        return True
+    match row[6]:
+        case "Arkalon" | "Nivon" | "Lumeria" | "Utopia" | "Drogol" | "Xentara" | "Zebronia" | "Kaldora" | "Vantor" | "Aqualis":
+            pass
+        case _:
+            return True
+    if float(row[7]) <= 0:
+        return True
+    if int(row[8]) <= 0:
+        return True
+    if float(row[9]) <= 0:
+        return True
+    if int(row[10]) <= 0:
+        return True
     return False
 
 def load_data(conn:psycopg.connection.Connection):
@@ -258,6 +278,12 @@ def load_data(conn:psycopg.connection.Connection):
                 line
             )
 
+            if detect_unclean_row(line):
+                cur.execute(
+                    "INSERT INTO staging.invalid_data (Employee_Id,Name,Age,Department,Date_of_Joining,Years_of_Experience,Country,Salary,Performance_Rating,Total_Sales,Support_Rating) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    line
+                )
+
 def clean_data(conn:psycopg.connection.Connection):
     known_ids:dict[int,Employee] = {}
     with conn.cursor() as cur:
@@ -273,10 +299,9 @@ def clean_data(conn:psycopg.connection.Connection):
             known_ids[clean_emp.Employee_Id] = clean_emp
 
             # step 3, format data
-            #formatted_emp = fix_format(clean_emp)
+            formatted_emp = fix_format(clean_emp)
 
             # step 4, detect and handel duplicates
-            """
             if formatted_emp.Employee_Id not in known_ids:
                 known_ids[formatted_emp.Employee_Id] = formatted_emp
             else:
@@ -290,7 +315,6 @@ def clean_data(conn:psycopg.connection.Connection):
                     #print("duplicate id")
                     formatted_emp.Employee_Id = get_new_id(known_ids)
                     known_ids[formatted_emp.Employee_Id] = formatted_emp
-            """
                 
             #print(f"Result: {clean_emp}")
     return known_ids
