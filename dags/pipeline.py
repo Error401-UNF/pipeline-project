@@ -19,7 +19,7 @@ with DAG(
     start_date=datetime(2026, 4, 2),
     schedule="@daily",
     default_args={
-        "retries": 2,
+        "retries": 0,
         'retry_delay': timedelta(minutes=0.5),
         'owner': 'aaron',
         'email': ['aabrey321@gmail.com'],
@@ -29,6 +29,6 @@ with DAG(
 ):
     chain(
         PythonOperator(python_callable = Injestion.run_injestion, task_id="ingestion"),
-        BashOperator(bash_command=f"cd {DBT_DIR} && dbt run", task_id="processing"),
+        BashOperator(bash_command=f"cd {DBT_DIR} && dbt run 1", task_id="processing"),
         #PythonOperator(python_callable = Processing.run_processing, task_id="processing") # here if i wanna use the python verson instead of the bash version for whatever reason
     )

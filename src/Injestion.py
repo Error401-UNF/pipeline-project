@@ -204,17 +204,19 @@ def fix_missing_data(emp:dirty_Employee, raw_row: tuple) -> Employee:
 def detect_unclean_row(row: tuple|list) -> bool:
     if None in row or "" in row:
         return True # incomplete, unclean
+    if int(row[0]) <= 0:
+        return True
     if int(row[2]) <= 0:
         return True
     try:
-        datetime.date.fromisoformat(row[4])
+        datetime.date.fromisoformat(fix_date(row[4]))
     except:
         # invalid format
         return True
     if int(row[5]) <= 0:
         return True
     match row[6]:
-        case "Arkalon" | "Nivon" | "Lumeria" | "Utopia" | "Drogol" | "Xentara" | "Zebronia" | "Kaldora" | "Vantor" | "Aqualis":
+        case "Arkalon" | "Nivon" | "Lumeria" | "Utopia" | "Drogol" | "Xentara" | "Zebronia" | "Kaldora" | "Vantor" | "Aqualis" | "Nirvon":
             pass
         case _:
             return True
@@ -222,9 +224,9 @@ def detect_unclean_row(row: tuple|list) -> bool:
         return True
     if int(row[8]) <= 0:
         return True
-    if float(row[9]) <= 0:
+    if float(row[9]) < 0:
         return True
-    if int(row[10]) <= 0:
+    if int(row[10]) < 0:
         return True
     return False
 
@@ -321,6 +323,14 @@ def clean_data(conn:psycopg.connection.Connection):
 
 def normilize_data(clean_data: dict[int,Employee],conn:psycopg.connection.Connection):
     with conn.cursor() as cur:
+        # drop tables
+        cur.execute("""
+            DROP TABLE IF EXISTS staging.support_data;
+            DROP TABLE IF EXISTS staging.sales_data;
+            DROP TABLE IF EXISTS staging.departments CASCADE;
+            DROP TABLE IF EXISTS staging.employees CASCADE;
+        """)
+        
         # set up normilized tables
         cur.execute("""
             CREATE TABLE IF NOT EXISTS staging.departments (
