@@ -19,8 +19,8 @@ with DAG(
     start_date=datetime(2026, 4, 2),
     schedule="@daily",
     default_args={
-        "retries": 0,
-        'retry_delay': timedelta(minutes=0.5),
+        "retries": 2,
+        'retry_delay': timedelta(minutes=1),
         'owner': 'aaron',
         'email': ['aabrey321@gmail.com'],
         'email_on_failure': True,
