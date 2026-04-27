@@ -1,3 +1,3 @@
-import src.Injestion as Injestion
+import src.amazon_Injestion as amazon_Injestion
 
-Injestion.run_injestion()
+amazon_Injestion.run_ingestion()

@@ -1,55 +1,74 @@
 version: 2
 
 models:
-  - name: salary_to_department_analysis
-    description: "Average salary per department."
+  - name: average_product_per_category
+    description: "Calculates the baseline metrics for each category. This serves as the 'mean' product reference point for all subsequent delta calculations."
     columns:
-      - name: dept_name
+      - name: category_id
         tests:
           - not_null
-      - name: average_salary
-        description: "Mean salary rounded to 2 decimal places."
-
-  - name: salary_to_tenure_analysis
-    description: "Binned analysis of salary based on 3-year experience intervals."
-    columns:
-      - name: tenure_range
-        description: "The 3-year bracket (e.g., 0-2, 3-5)."
-      - name: average_salary
-        description: "Average salary within this experience bracket."
-
-  - name: performance_by_salary_analysis
-    description: "Breakdown of average salary across different performance ratings."
-    columns:
-      - name: performance_rating
-        description: "Numeric rating of employee performance."
+          - unique
+      - name: category_name
         tests:
           - not_null
-      - name: average_salary
+      - name: average_stars
+      - name: average_reviews
+      - name: average_price
+      - name: average_listPrice
 
-  - name: salary_to_country_analysis
-    description: "Geospatial salary distribution analysis."
+  - name: full_average_delta
+    description: "A product-level table showing how much each item deviates from its category average. Positive values indicate better-than-average performance or higher-than-average price."
     columns:
-      - name: country
+      - name: asin
+        tests:
+          - unique
+          - not_null
+      - name: title
+      - name: reviews
+      - name: stars
+      - name: adjusted_stars
+      - name: adjusted_price
+      - name: reviews
+        tests:
+          - accepted_range:
+              min_value: 100
+
+  - name: top_average_delta
+    description: "The 'Leaderboard' table. It identifies the Top 5 products in every category based on their performance relative to the category mean."
+    columns:
+      - name: asin
+        tests:
+          - unique
+          - not_null
+      - name: title
+      - name: category_id
+      - name: stars
+      - name: reviews
+      - name: adjusted_price
+      - name: adjusted_listPrice
+      - name: category_rank
         tests:
           - not_null
-      - name: average_salary
-
-  - name: early_talent_indicator
-    description: "List of high-performing employees with 3 or fewer years of experience."
-    columns:
-      - name: name
-        tests:
-          - not_null
-      - name: performance_rating
-        tests:
           - accepted_values:
-              values: [4, 5]
-      - name: years_of_experience
+              values: [1, 2, 3, 4, 5]
 
-  - name: turnover_rate
-    description: "Calculates the average joining date per department to identify hiring cohorts."
+  - name: average_price_delta_per_rating
+    description: "An analysis table that groups products into 10 star buckets (0.5 increments) and calculates the percentage price premium/discount for that bucket."
     columns:
-      - name: dept_name
+      - name: star_bucket
         tests:
           - not_null
+      - name: avg_price_delta_percent
+      - name: avg_listprice_delta_percent
+    
+  
+  - name: average_price_delta_per_rating_per_catagory
+    description: "An analysis table that groups products into 10 star buckets (0.5 increments) and calculates the percentage price premium/discount for that bucket. Splits an aditional time by catagory"
+    columns:
+      - name: star_bucket
+        tests:
+          - not_null
+      - name: avg_price_delta_percent
+      - name: avg_listprice_delta_percent
+
+

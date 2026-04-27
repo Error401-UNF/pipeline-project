@@ -5,5 +5,5 @@ sources:
     database: Pipeline 
     schema: staging
     tables:
-      - name: employees
-      - name: departments
+      - name: categories
+      - name: products

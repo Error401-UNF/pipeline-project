@@ -6,3 +6,4 @@ __pycache__
 .airflow/
 logs/
 target/
+data/amazon_*
